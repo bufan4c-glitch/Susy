@@ -19,25 +19,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Чистимо систему перед початком
+          # ПОВНИЙ ФІКС ПОМИЛКИ 100:
+          # 1. Видаляємо старі списки, які можуть бути битими
           sudo rm -rf /var/lib/apt/lists/*
-          for i in {1..5}; do sudo apt-get update && break || sleep 15; done
+          # 2. Очищуємо кеш apt
+          sudo apt-get clean
+          # 3. Пробуємо оновитись 5 разів з паузою 20 секунд
+          for i in {1..5}; do 
+            sudo apt-get update && break || (echo "Retry $i..." && sleep 20); 
+          done
           
-          # Тільки те, що реально треба для компіляції
-          sudo apt-get install -y build-essential git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-gstreamer-lite0-dev libgstreamer-plugins-base1.0-dev
+          # Встановлення пакетів (додав -qq для меншого спаму в логах)
+          sudo apt-get install -y -qq build-essential git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-gstreamer-lite0-dev libgstreamer-plugins-base1.0-dev
           
           pip install --upgrade pip
           pip install buildozer cython==0.29.33 setuptools
 
       - name: Build with Buildozer
         run: |
-          # Команда 'yes' автоматично погоджується з усіма запитами
+          # Автоматично тиснемо "y" на всі ліцензії Android SDK
           yes | buildozer -v android debug
         continue-on-error: false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Ready-APK
+          name: CryptoTapper-New-Build
           path: bin/*.apk
           
